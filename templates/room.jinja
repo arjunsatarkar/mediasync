@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mediasync room</title>
+    <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="/static/video.js/video-js.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        div#playerContainer {
+            --width: 70vw;
+            width: var(--width);
+            height: calc(var(--width) * (9/16))
+        }
+    </style>
+</head>
+
+<body>
+    <div id="playerContainer">
+        <video-js id="player">
+            <source src="{{video_url}}">
+        </video-js>
+    </div>
+    <script src="/static/video.js/video.min.js"></script>
+    <script>
+        const JUMP_THRESHOLD_SECS = 0.5;
+        const player = videojs('player', {
+            controls: true,
+            fill: true,
+            playsinline: true,
+            autoplay: true,
+        });
+        player.ready(() => {
+            {% if is_host %}
+                const set_time_socket = new WebSocket(location.origin.replace(/^http/, 'ws') + "/set_time/{{room_id}}");
+                setInterval(() => {
+                    set_time_socket.send(player.currentTime());
+                }, 100);
+            {% else %}
+                const get_time_socket = new WebSocket(location.origin.replace(/^http/, 'ws') + "/get_time/{{room_id}}");
+                get_time_socket.addEventListener("message", (event) => {
+                    const new_time = +event.data;
+                    if (Math.abs(new_time - player.currentTime()) > JUMP_THRESHOLD_SECS) {
+                        player.currentTime(+event.data);
+                    }
+                });
+            {% endif %}
+        });
+    </script>
+</body>
+
+</html>
