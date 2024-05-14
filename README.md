@@ -9,13 +9,14 @@ Currently in an alpha state. Only clients connected from localhost can host a ro
 ## Tasks
 
 (in no particular order)
-[ ] Implement sessions with cookies
-[ ] Implement more sophisticated authentication for hosting
-[ ] Use heartbeats to determine latency and consider it in the jump threshold
-[ ] Implement the ability for viewers to pause for themselves
-[ ] Allow hosts to end rooms
-[ ] Automatically end rooms if no one is connected and they are older than *n* hours
-[ ] Implement chat
-[ ] Implement full screen that preserves chat
-[ ] Figure out layout for mobile
-[ ] Add logging of chat/other events
+
+- [ ] Implement sessions with cookies
+- [ ] Implement more sophisticated authentication for hosting
+- [ ] Use heartbeats to determine latency and consider it in the jump threshold
+- [ ] Implement the ability for viewers to pause for themselves
+- [ ] Allow hosts to end rooms
+- [ ] Automatically end rooms if no one is connected and they are older than *n* hours
+- [ ] Implement chat
+- [ ] Implement full screen that preserves chat
+- [ ] Figure out layout for mobile
+- [ ] Add logging of chat/other events
