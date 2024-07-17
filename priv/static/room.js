@@ -25,6 +25,7 @@
     playsinline: true,
     preload: "auto",
   });
+  player.controlBar.progressControl.disable();
 
   const updatePlaybackState = (latestReceivedState, nowMilliseconds) => {
     if (nowMilliseconds - latestReceivedState.receivedAtMilliseconds > 2000) {
@@ -100,6 +101,7 @@
             const CHECK_STATE_INTERVAL_MILLISECONDS = 20;
 
             if (host) {
+              player.controlBar.progressControl.enable();
               intervalId = setInterval(() => {
                 websocket.send(
                   prepareStateUpdateMessage(
