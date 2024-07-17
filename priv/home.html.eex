@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>home | mediasync</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+
+<body>
+    <form action="/host_room" method="post">
+        <input name="_csrf_token" type="hidden" value="<%= Plug.CSRFProtection.get_csrf_token() %>">
+        <label for="host_room_input_video_url">video url:</label>
+        <input name="video_url" id="host_room_input_video_url" type="url"
+            maxlength="<%= Application.get_env(:mediasync, :max_video_url_size) %>" required><br>
+
+        <script>
+            "use strict";
+            /*  The built-in validation for <input type="url"> seems very half-hearted in my
+                testing (Firefox 127.0.2), so let's replace it with something complete. */
+            (() => {
+                const checkURLInputValidity = (urlInput) => {
+                    if (URL.canParse(urlInput.value)) {
+                        urlInput.setCustomValidity("");
+                    } else {
+                        urlInput.setCustomValidity("Please enter a valid URL.");
+                    }
+                    urlInput.reportValidity();
+                };
+                const urlInput = document.querySelector("input#host_room_input_video_url");
+                checkURLInputValidity(urlInput);
+                urlInput.addEventListener("input", e => checkURLInputValidity(e.target));
+            })();
+        </script>
+
+        <input type="submit" value="host room">
+    </form>
+</body>
+
+</html>
