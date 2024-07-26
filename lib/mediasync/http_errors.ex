@@ -21,12 +21,7 @@ defmodule Mediasync.HTTPErrors do
     )
   end
 
-  @invalid_video_url Jason.encode!(
-                       %{
-                         "error" => "invalid_video_url"
-                       },
-                       pretty: true
-                     )
+  @invalid_video_url Jason.encode!(%{"error" => "invalid_video_url"}, pretty: true)
 
   @spec send_invalid_video_url(Plug.Conn.t()) :: Plug.Conn.t()
   @spec send_invalid_video_url(Plug.Conn.t(), []) :: Plug.Conn.t()
@@ -58,6 +53,19 @@ defmodule Mediasync.HTTPErrors do
     )
   end
 
+  @forbidden Jason.encode!(%{"error" => "forbidden"}, pretty: true)
+
+  @spec send_forbidden(Plug.Conn.t()) :: Plug.Conn.t()
+  @spec send_forbidden(Plug.Conn.t(), []) :: Plug.Conn.t()
+  def send_forbidden(conn, _opts \\ []) do
+    conn
+    |> put_json_content_type()
+    |> send_resp(
+      403,
+      @forbidden
+    )
+  end
+
   @invalid_csrf_token Jason.encode!(
                         %{
                           "error" => "invalid_csrf_token",
@@ -72,6 +80,16 @@ defmodule Mediasync.HTTPErrors do
     conn
     |> put_json_content_type()
     |> send_resp(400, @invalid_csrf_token)
+  end
+
+  @bad_gateway Jason.encode!(%{"error" => "bad_gateway"}, pretty: true)
+
+  @spec send_bad_gateway(Plug.Conn.t()) :: Plug.Conn.t()
+  @spec send_bad_gateway(Plug.Conn.t(), []) :: Plug.Conn.t()
+  def send_bad_gateway(conn, _opts \\ []) do
+    conn
+    |> put_json_content_type()
+    |> send_resp(502, @bad_gateway)
   end
 
   @unknown Jason.encode!(

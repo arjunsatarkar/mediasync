@@ -20,7 +20,7 @@ defmodule Mediasync.RoomConnection.State do
 end
 
 defmodule Mediasync.RoomConnection do
-  import Mediasync.Utils, only: [bool_to_int_repr: 1, int_repr_to_bool!: 1]
+  import Mediasync.Utils, only: [bool_to_int_repr: 1, int_repr_to_bool: 1]
 
   @behaviour WebSock
 
@@ -66,7 +66,7 @@ defmodule Mediasync.RoomConnection do
       ) do
     if state.host? do
       Mediasync.Room.publish_playback_state(state.room_pid, %Mediasync.PlaybackState{
-        paused?: int_repr_to_bool!(paused?),
+        paused?: int_repr_to_bool(paused?),
         position_milliseconds: position_milliseconds
       })
 
@@ -93,13 +93,14 @@ defmodule Mediasync.RoomConnection do
 
   @impl true
   def handle_info(
-        {:DOWN, ref, :process, _object, _reason},
+        {:DOWN, ref, :process, _object, reason},
         state = %Mediasync.RoomConnection.State{}
       ) do
     room_monitor_ref = state.room_monitor_ref
 
-    case ref do
-      ^room_monitor_ref -> {:stop, {:error, :room_exited}, state}
+    case {ref, reason} do
+      {^room_monitor_ref, :shutdown} -> {:stop, :normal, state}
+      {^room_monitor_ref, _} -> {:stop, {:error, :room_exited}, state}
       _ -> {:stop, {:error, :unexpected_down_message}, state}
     end
   end

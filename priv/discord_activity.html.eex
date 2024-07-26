@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>discord activity | mediasync</title>
+    <style>
+        body {
+            overflow: hidden;
+        }
+        iframe {
+            border: none;
+        }
+        html, body, iframe {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <iframe src="/.proxy/?<%= Mediasync.Constants.query_param_discord_activity_inner() %>"></iframe>
+    <script>
+        const DISCORD_CLIENT_ID = "<%= Application.fetch_env!(:mediasync, :discord_client_id) %>";
+    </script>
+    <script src="/static/discord-embedded-app-sdk/Discord.js" type="module"></script>
+    <script src="/static/discord_activity.js" type="module"></script>
+</body>
+</html>

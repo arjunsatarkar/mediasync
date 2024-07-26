@@ -3,7 +3,6 @@ defmodule Mediasync.RoomID do
 
   @spec generate() :: t()
   def generate do
-    Application.get_env(:mediasync, :node_id) <>
-      "~" <> Base.url_encode64(:crypto.strong_rand_bytes(16), padding: false)
+    Base.url_encode64(:crypto.strong_rand_bytes(16), padding: false)
   end
 end

@@ -27,7 +27,8 @@ mediasync-*.tar
 
 ##
 
+/.parcel-cache/
+
 /.env
 
 /node_modules/
-

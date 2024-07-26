@@ -1,3 +1,10 @@
+<%
+{form_action_base, form_action_suffix} = case mode do
+  :discord_activity -> {"/.proxy/", "?#{Mediasync.Constants.query_param_discord_activity_inner()}"}
+  :normal -> {"/", ""}
+  _ -> raise ArgumentError
+end
+%>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,7 +16,7 @@
 </head>
 
 <body>
-    <form action="/host_room" method="post">
+    <form action="<%= form_action_base %>host_room<%= form_action_suffix %>" method="post">
         <input name="_csrf_token" type="hidden" value="<%= Plug.CSRFProtection.get_csrf_token() %>">
         <label for="host_room_input_video_url">video url:</label>
         <input name="video_url" id="host_room_input_video_url" type="url"
@@ -29,7 +36,6 @@
                     urlInput.reportValidity();
                 };
                 const urlInput = document.querySelector("input#host_room_input_video_url");
-                checkURLInputValidity(urlInput);
                 urlInput.addEventListener("input", e => checkURLInputValidity(e.target));
             })();
         </script>

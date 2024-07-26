@@ -20,6 +20,21 @@ defmodule Mediasync.Utils do
     |> send_resp(status, "Redirecting to #{location}")
   end
 
+  def put_resp_header_or_ignore(conn, key, value) do
+    if value do
+      Plug.Conn.put_resp_header(conn, key, value)
+    else
+      conn
+    end
+  end
+
+  @spec get_req_header_list(Plug.Conn.t(), [String.t()]) :: [{String.t(), String.t()}]
+  def get_req_header_list(conn, keys) do
+    for key <- keys, value = List.first(Plug.Conn.get_req_header(conn, key)) do
+      {key, value}
+    end
+  end
+
   @spec put_secret_key_base(Plug.Conn.t()) :: Plug.Conn.t()
   @spec put_secret_key_base(Plug.Conn.t(), []) :: Plug.Conn.t()
   def put_secret_key_base(conn, _opts \\ []) do
@@ -36,31 +51,9 @@ defmodule Mediasync.Utils do
     Application.fetch_env!(:mediasync, :session_signing_salt)
   end
 
-  @spec bool_to_int_repr(boolean()) :: 0 | 1
-  @doc """
-  Convert false to 0 and true to 1. Useful for sending boolean values over binary protocols.
+  def bool_to_int_repr(false), do: 0
+  def bool_to_int_repr(true), do: 1
 
-  Inverse of `int_repr_to_bool/1`.
-  """
-  def bool_to_int_repr(bool) do
-    case bool do
-      false -> 0
-      true -> 1
-    end
-  end
-
-  @spec int_repr_to_bool!(0 | 1) :: boolean()
-  @doc """
-  Convert 0 to false and 1 to true. Useful for receiving boolean values over binary protocols.
-  Raises `ArgumentError` if given an argument other than 0 or 1.
-
-  Inverse of `bool_to_int_repr/1`.
-  """
-  def int_repr_to_bool!(int_repr) do
-    case int_repr do
-      0 -> false
-      1 -> true
-      _ -> raise ArgumentError
-    end
-  end
+  def int_repr_to_bool(0), do: false
+  def int_repr_to_bool(1), do: true
 end

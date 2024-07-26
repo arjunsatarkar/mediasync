@@ -1,10 +1,21 @@
+defmodule Mediasync.Room.VideoInfo do
+  @enforce_keys [:url, :content_type]
+
+  defstruct [:url, :content_type]
+
+  @type t() :: %Mediasync.Room.VideoInfo{
+          url: binary(),
+          content_type: binary()
+        }
+end
+
 defmodule Mediasync.Room.State do
-  @enforce_keys [:video_url, :host_user_token_hash]
+  @enforce_keys [:video_info, :host_user_token_hash]
 
   @host_disconnected_tries_max 5 * 6
 
   defstruct [
-    :video_url,
+    :video_info,
     :host_user_token_hash,
     :room_id,
     host_disconnected_tries: @host_disconnected_tries_max
@@ -15,7 +26,7 @@ defmodule Mediasync.Room.State do
   end
 
   @type t() :: %Mediasync.Room.State{
-          video_url: binary(),
+          video_info: Mediasync.Room.VideoInfo.t(),
           host_user_token_hash: Mediasync.UserToken.hash(),
           room_id: Mediasync.RoomID.t(),
           host_disconnected_tries: integer()
@@ -24,6 +35,7 @@ end
 
 defmodule Mediasync.Room do
   use GenServer
+  require Logger
 
   @spec start_link(Mediasync.Room.State.t()) :: tuple()
   def start_link(state = %Mediasync.Room.State{}) do
@@ -41,14 +53,32 @@ defmodule Mediasync.Room do
     )
   end
 
-  @spec get_video_url(GenServer.server()) :: binary()
-  def get_video_url(pid) do
-    GenServer.call(pid, :get_video_url)
+  @spec get_video_info(GenServer.server()) :: Mediasync.Room.VideoInfo.t()
+  def get_video_info(pid) do
+    GenServer.call(pid, :get_video_info)
   end
 
   @spec host?(GenServer.server(), Mediasync.UserToken.hash()) :: boolean()
   def host?(pid, user_token_hash) do
     GenServer.call(pid, {:host?, user_token_hash})
+  end
+
+  @spec host_connected?(GenServer.server()) :: boolean()
+  def host_connected?(pid) do
+    GenServer.call(pid, :host_connected?)
+  end
+
+  defp host_connected_inner(state = %Mediasync.Room.State{}) do
+    case Registry.lookup(
+           Mediasync.RoomConnectionRegistry,
+           {state.room_id, state.host_user_token_hash}
+         ) do
+      [{_pid, _value}] ->
+        true
+
+      [] ->
+        false
+    end
   end
 
   @spec publish_playback_state(GenServer.server(), Mediasync.PlaybackState.t()) :: :ok
@@ -67,8 +97,8 @@ defmodule Mediasync.Room do
   end
 
   @impl true
-  def handle_call(:get_video_url, _from, state = %Mediasync.Room.State{}) do
-    {:reply, state.video_url, state}
+  def handle_call(:get_video_info, _from, state = %Mediasync.Room.State{}) do
+    {:reply, state.video_info, state}
   end
 
   @impl true
@@ -79,6 +109,11 @@ defmodule Mediasync.Room do
       ^host_user_token_hash -> {:reply, true, state}
       _ -> {:reply, false, state}
     end
+  end
+
+  @impl true
+  def handle_call(:host_connected?, _from, state = %Mediasync.Room.State{}) do
+    {:reply, host_connected_inner(state), state}
   end
 
   @impl true
@@ -97,21 +132,17 @@ defmodule Mediasync.Room do
   @impl true
   def handle_info(:check_if_active, state) do
     state =
-      case Registry.lookup(
-             Mediasync.RoomConnectionRegistry,
-             {state.room_id, state.host_user_token_hash}
-           ) do
-        [{_pid, _value}] ->
-          %{state | host_disconnected_tries: Mediasync.Room.State.host_disconnected_tries_max()}
-
-        _ ->
-          %{state | host_disconnected_tries: state.host_disconnected_tries - 1}
+      if host_connected_inner(state) do
+        %{state | host_disconnected_tries: Mediasync.Room.State.host_disconnected_tries_max()}
+      else
+        %{state | host_disconnected_tries: state.host_disconnected_tries - 1}
       end
 
     Process.send_after(self(), :check_if_active, @inactive_check_wait_milliseconds)
 
     if state.host_disconnected_tries <= 0 do
-      {:stop, :no_host, state}
+      Logger.info("Room #{state.room_id} shutting down: no host.")
+      {:stop, {:shutdown, :no_host}, state}
     else
       {:noreply, state}
     end
