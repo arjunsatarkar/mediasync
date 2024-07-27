@@ -17,9 +17,10 @@ websocket_origin =
     )
   )
 
-discord_client_id =
+{discord_client_id, discord_client_secret} =
   if enable_discord_activity? do
-    System.fetch_env!("MEDIASYNC_DISCORD_CLIENT_ID")
+    {System.fetch_env!("MEDIASYNC_DISCORD_CLIENT_ID"),
+     System.fetch_env!("MEDIASYNC_DISCORD_CLIENT_SECRET")}
   end
 
 websocket_origin =
@@ -37,6 +38,7 @@ config :mediasync,
   websocket_max_frame_octets: 10_000,
   enable_discord_activity?: enable_discord_activity?,
   discord_client_id: discord_client_id,
+  discord_client_secret: discord_client_secret,
   secret_key_base: System.fetch_env!("MEDIASYNC_SECRET_KEY_BASE"),
   session_encryption_salt: System.fetch_env!("MEDIASYNC_SESSION_ENCRYPTION_SALT"),
   session_signing_salt: System.fetch_env!("MEDIASYNC_SESSION_SIGNING_SALT")

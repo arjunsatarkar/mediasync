@@ -1,3 +1,4 @@
+<% home_url = "/.proxy/?#{Mediasync.Constants.query_param_discord_activity_inner()}" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,25 +7,58 @@
     <meta name="robots" content="noindex, nofollow">
     <title>discord activity | mediasync</title>
     <style>
+        :root {
+            --instance-room-info-height: 20svh;
+            --instance-room-info-remainder: calc(100svh - var(--instance-room-info-height));
+        }
+
         body {
             overflow: hidden;
+            background-color: black;
+            color: white;
+            font-family: monospace;
         }
         iframe {
             border: none;
         }
         html, body, iframe {
             margin: 0;
-            width: 100%;
-            height: 100%;
+            width: 100svw;
+            height: 100svh;
+        }
+
+        iframe.at-home {
+            height: var(--instance-room-info-remainder);
+        }
+
+        div#instance-room-info {
+            display: none;
+            overflow: auto;
+        }
+
+        body:has(> iframe.at-home) > div#instance-room-info {
+            display: block;
+            height: var(--instance-room-info-height);
+            border-bottom: 1px solid white;
         }
     </style>
 </head>
-<body>
-    <iframe src="/.proxy/?<%= Mediasync.Constants.query_param_discord_activity_inner() %>"></iframe>
+<body data-csrf-token="<%= Plug.CSRFProtection.get_csrf_token() %>">
+    <div id="instance-room-info">
+        <span style="font-weight: bold;">currently hosting:</span>
+        <div id="instance-room-info-content"></div>
+    </div>
+    </div>
+    <iframe src="<%= home_url %>" style="display: none;" class="at-home" name="activity-inner-iframe"></iframe>
     <script>
         const DISCORD_CLIENT_ID = "<%= Application.fetch_env!(:mediasync, :discord_client_id) %>";
+        const ACCESS_TOKEN_URL = "/.proxy/discord_activity/access_token?<%= Mediasync.Constants.query_param_discord_activity_inner() %>";
+        const HOME_URL = "<%= home_url %>";
+        const roomUrl = (roomId) => {
+          return `/.proxy/room/${roomId}?<%= Mediasync.Constants.query_param_discord_activity_inner() %>`;
+        };
     </script>
     <script src="/static/discord-embedded-app-sdk/Discord.js" type="module"></script>
-    <script src="/static/discord_activity.js" type="module"></script>
+    <script src="/static/discordActivity.js" type="module"></script>
 </body>
 </html>

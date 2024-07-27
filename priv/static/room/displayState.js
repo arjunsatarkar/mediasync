@@ -9,7 +9,7 @@
       fetch(STATE_URL)
         .then((response) => {
           if (!response.ok) {
-            throw new Error(`Error: fetching state returned ${response.status}`);
+            throw new Error(`Fetching room state failed with status code ${response.status}`);
           }
           return response.json();
         })
@@ -17,7 +17,8 @@
           const viewersConnected = json.viewersConnected;
           stateElement.dataset.text = `total viewers: ${viewersConnected}`;
         })
-        .catch((_) => {
+        .catch((error) => {
+          console.error(error);
           stateElement.dataset.text = STATE_ELEMENT_INITIAL_TEXT;
         });
     }

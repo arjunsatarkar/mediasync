@@ -13,6 +13,12 @@ defmodule Mediasync.Utils do
     put_resp_content_type(conn, "application/json")
   end
 
+  @spec put_plain_text_content_type(Plug.Conn.t()) :: Plug.Conn.t()
+  @spec put_plain_text_content_type(Plug.Conn.t(), []) :: Plug.Conn.t()
+  def put_plain_text_content_type(conn, _opts \\ []) do
+    put_resp_content_type(conn, "text/plain")
+  end
+
   @spec redirect(Plug.Conn.t(), status: Plug.Conn.status(), location: binary()) :: Plug.Conn.t()
   def redirect(conn, status: status, location: location) do
     conn

@@ -5,7 +5,7 @@ defmodule Mediasync.Router do
   use Plug.Router
   use Plug.ErrorHandler
 
-  plug(Plug.Logger)
+  plug(Plug.Logger, log: :debug)
   plug(Plug.Head)
 
   plug(Plug.Static, at: "/static", from: {:mediasync, "priv/static"})
@@ -34,21 +34,19 @@ defmodule Mediasync.Router do
       conn
       |> put_html_content_type()
 
-    send_resp(
-      conn,
-      200,
-      cond do
-        enable_discord_activity? and Map.get(conn.query_params, query_param_instance_id()) ->
-          Mediasync.Templates.discord_activity()
+    cond do
+      enable_discord_activity? and Map.has_key?(conn.query_params, query_param_instance_id()) ->
+        conn
+        |> put_session("discord_instance_id", conn.query_params["instance_id"])
+        |> send_resp(200, Mediasync.Templates.discord_activity())
 
-        enable_discord_activity? and
-            Map.get(conn.query_params, query_param_discord_activity_inner()) ->
-          Mediasync.Templates.home(:discord_activity)
+      enable_discord_activity? and
+          Map.has_key?(conn.query_params, query_param_discord_activity_inner()) ->
+        send_resp(conn, 200, Mediasync.Templates.home(:discord_activity))
 
-        true ->
-          Mediasync.Templates.home()
-      end
-    )
+      true ->
+        send_resp(conn, 200, Mediasync.Templates.home())
+    end
   end
 
   post "/host_room" do
@@ -73,23 +71,31 @@ defmodule Mediasync.Router do
         Mediasync.HTTPErrors.send_invalid_video_url(conn)
 
       true ->
+        in_discord_activity? =
+          Application.fetch_env!(:mediasync, :enable_discord_activity?) and
+            Map.has_key?(conn.query_params, query_param_discord_activity_inner())
+
+        {suffix, host_username, instance_id} =
+          if in_discord_activity? do
+            {"?#{query_param_discord_activity_inner()}",
+             Mediasync.DiscordAPI.get_user!(get_session(conn, "discord_access_token"))[
+               "username"
+             ], get_session(conn, "discord_instance_id")}
+          else
+            {"", nil, nil}
+          end
+
         {:ok, _pid, room_id} =
           DynamicSupervisor.start_child(
             Mediasync.RoomSupervisor,
             {Mediasync.Room,
              %Mediasync.Room.State{
                video_info: video_info,
-               host_user_token_hash: get_user_token_hash!(conn)
+               host_user_token_hash: get_user_token_hash!(conn),
+               host_username: host_username,
+               discord_instance_id: instance_id
              }}
           )
-
-        suffix =
-          if Application.fetch_env!(:mediasync, :enable_discord_activity?) and
-               Map.get(conn.query_params, query_param_discord_activity_inner()) do
-            "?#{query_param_discord_activity_inner()}"
-          else
-            ""
-          end
 
         redirect(conn, status: 303, location: "/room/#{room_id}#{suffix}")
     end
@@ -104,7 +110,7 @@ defmodule Mediasync.Router do
 
         {video_info, websocket_path, state_url, home_url} =
           if Application.fetch_env!(:mediasync, :enable_discord_activity?) and
-               Map.get(conn.query_params, query_param_discord_activity_inner()) do
+               Map.has_key?(conn.query_params, query_param_discord_activity_inner()) do
             {%{video_info | url: "/.proxy/room/#{room_id}/video"},
              "/.proxy/room/#{room_id}/websocket?#{query_param_discord_activity_inner()}",
              "/.proxy/room/#{room_id}/state.json?#{query_param_discord_activity_inner()}",
@@ -187,6 +193,60 @@ defmodule Mediasync.Router do
     end
   end
 
+  post "/discord_activity/access_token" do
+    if Application.fetch_env!(:mediasync, :enable_discord_activity?) do
+      if Map.has_key?(conn.query_params, query_param_discord_activity_inner()) do
+        response =
+          Req.post!("https://discord.com/api/oauth2/token",
+            headers: [
+              content_type: "application/x-www-form-urlencoded"
+            ],
+            form: [
+              client_id: Application.fetch_env!(:mediasync, :discord_client_id),
+              client_secret: Application.fetch_env!(:mediasync, :discord_client_secret),
+              grant_type: "authorization_code",
+              code: conn.body_params["code"]
+            ]
+          )
+
+        access_token = response.body["access_token"]
+
+        conn
+        |> put_session("discord_access_token", access_token)
+        |> put_plain_text_content_type()
+        |> send_resp(200, access_token)
+      else
+        # If the query param isn't present, we won't be able to modify the session (see session_wrapper/2).
+        Mediasync.HTTPErrors.send_bad_request(conn,
+          message:
+            "This route must always be called with the query param ?#{query_param_discord_activity_inner()}"
+        )
+      end
+    else
+      Mediasync.HTTPErrors.send_not_found(conn)
+    end
+  end
+
+  get "/discord_activity/rooms_for_instance" do
+    if Application.fetch_env!(:mediasync, :enable_discord_activity?) do
+      values =
+        for {_pid, value} <-
+              Registry.match(
+                Mediasync.DiscordActivityInstanceRegistry,
+                conn.query_params["instance_id"],
+                :_
+              ) do
+          value
+        end
+
+      conn
+      |> put_json_content_type()
+      |> send_resp(200, Jason.encode!(values))
+    else
+      Mediasync.HTTPErrors.send_not_found(conn)
+    end
+  end
+
   match _ do
     Mediasync.HTTPErrors.send_not_found(conn)
   end
@@ -206,10 +266,10 @@ defmodule Mediasync.Router do
     query_params = fetch_query_params(conn).query_params
 
     in_discord_activity? =
-      !!(Application.fetch_env!(:mediasync, :enable_discord_activity?) &&
-           (Map.get(query_params, query_param_discord_activity_inner()) ||
-              (conn.request_path == "/" &&
-                 Map.get(query_params, query_param_instance_id()))))
+      Application.fetch_env!(:mediasync, :enable_discord_activity?) and
+        (Map.has_key?(query_params, query_param_discord_activity_inner()) or
+           (conn.request_path == "/" and
+              Map.has_key?(query_params, query_param_instance_id())))
 
     Plug.Session.call(
       conn,

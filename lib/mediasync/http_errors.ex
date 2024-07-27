@@ -4,8 +4,8 @@ defmodule Mediasync.HTTPErrors do
 
   @video_url_too_large Jason.encode!(
                          %{
-                           "error" => "video_url_too_large",
-                           "max_size" => Application.compile_env(:mediasync, :max_video_url_size)
+                           "error" => "videoUrlTooLarge",
+                           "maxSize" => Application.compile_env(:mediasync, :max_video_url_size)
                          },
                          pretty: true
                        )
@@ -21,7 +21,7 @@ defmodule Mediasync.HTTPErrors do
     )
   end
 
-  @invalid_video_url Jason.encode!(%{"error" => "invalid_video_url"}, pretty: true)
+  @invalid_video_url Jason.encode!(%{"error" => "invalidVideoUrl"}, pretty: true)
 
   @spec send_invalid_video_url(Plug.Conn.t()) :: Plug.Conn.t()
   @spec send_invalid_video_url(Plug.Conn.t(), []) :: Plug.Conn.t()
@@ -36,7 +36,7 @@ defmodule Mediasync.HTTPErrors do
 
   @not_found Jason.encode!(
                %{
-                 "error" => "not_found",
+                 "error" => "notFound",
                  "message" => "No page was found at this location."
                },
                pretty: true
@@ -68,7 +68,7 @@ defmodule Mediasync.HTTPErrors do
 
   @invalid_csrf_token Jason.encode!(
                         %{
-                          "error" => "invalid_csrf_token",
+                          "error" => "invalidCsrfToken",
                           "message" => "Try reloading the previous page and retrying."
                         },
                         pretty: true
@@ -82,7 +82,29 @@ defmodule Mediasync.HTTPErrors do
     |> send_resp(400, @invalid_csrf_token)
   end
 
-  @bad_gateway Jason.encode!(%{"error" => "bad_gateway"}, pretty: true)
+  @spec send_bad_request(Plug.Conn.t()) :: Plug.Conn.t()
+  @spec send_bad_request(Plug.Conn.t(), message: String.t() | nil) :: Plug.Conn.t()
+  def send_bad_request(conn), do: send_bad_request(conn, message: nil)
+  def send_bad_request(conn, []), do: send_bad_request(conn, message: nil)
+
+  def send_bad_request(conn, message: message) do
+    error = %{
+      "error" => "badRequest"
+    }
+
+    error =
+      if message do
+        Map.put(error, "message", message)
+      else
+        error
+      end
+
+    conn
+    |> put_json_content_type()
+    |> send_resp(400, Jason.encode!(error))
+  end
+
+  @bad_gateway Jason.encode!(%{"error" => "badGateway"}, pretty: true)
 
   @spec send_bad_gateway(Plug.Conn.t()) :: Plug.Conn.t()
   @spec send_bad_gateway(Plug.Conn.t(), []) :: Plug.Conn.t()
