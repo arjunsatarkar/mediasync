@@ -2,14 +2,6 @@ defmodule Mediasync.HTTPErrors do
   import Plug.Conn
   import Mediasync.Utils
 
-  @video_url_too_large Jason.encode!(
-                         %{
-                           "error" => "videoUrlTooLarge",
-                           "maxSize" => Application.compile_env(:mediasync, :max_video_url_size)
-                         },
-                         pretty: true
-                       )
-
   @spec send_video_url_too_large(Plug.Conn.t()) :: Plug.Conn.t()
   @spec send_video_url_too_large(Plug.Conn.t(), []) :: Plug.Conn.t()
   def send_video_url_too_large(conn, _opts \\ []) do
@@ -17,7 +9,13 @@ defmodule Mediasync.HTTPErrors do
     |> put_json_content_type()
     |> send_resp(
       400,
-      @video_url_too_large
+      Jason.encode!(
+        %{
+          "error" => "videoUrlTooLarge",
+          "maxSize" => Application.fetch_env!(:mediasync, :max_video_url_size)
+        },
+        pretty: true
+      )
     )
   end
 
