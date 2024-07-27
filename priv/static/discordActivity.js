@@ -60,6 +60,7 @@ iframe.addEventListener("load", (_) => {
   const locationURL = new URL(iframe.contentWindow.location);
   const locationPath = locationURL.pathname + locationURL.search;
   if (locationPath === HOME_URL) {
+    updateInstanceRoomInfo();
     instanceRoomInfoIntervalId = setInterval(updateInstanceRoomInfo, INSTANCE_ROOM_INFO_INTERVAL);
     iframe.className = "at-home";
   } else {
