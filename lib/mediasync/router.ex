@@ -85,19 +85,25 @@ defmodule Mediasync.Router do
             {"", nil, nil}
           end
 
-        {:ok, _pid, room_id} =
-          DynamicSupervisor.start_child(
-            Mediasync.RoomSupervisor,
-            {Mediasync.Room,
-             %Mediasync.Room.State{
-               video_info: video_info,
-               host_user_token_hash: get_user_token_hash!(conn),
-               host_username: host_username,
-               discord_instance_id: instance_id
-             }}
-          )
+        case DynamicSupervisor.start_child(
+               Mediasync.RoomSupervisor,
+               {Mediasync.Room,
+                %Mediasync.Room.State{
+                  video_info: video_info,
+                  host_user_token_hash: get_user_token_hash!(conn),
+                  host_username: host_username,
+                  discord_instance_id: instance_id
+                }}
+             ) do
+          {:ok, _pid, room_id} ->
+            redirect(conn, status: 303, location: "/room/#{room_id}#{suffix}")
 
-        redirect(conn, status: 303, location: "/room/#{room_id}#{suffix}")
+          {:error, :discord_activity_instance_max_rooms_reached} ->
+            Mediasync.HTTPErrors.send_bad_request(
+              conn,
+              message: "Cannot host more rooms in this activity instance."
+            )
+        end
     end
   end
 

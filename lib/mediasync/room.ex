@@ -51,12 +51,12 @@ defmodule Mediasync.Room do
         _ -> state
       end
 
-    Tuple.append(
-      GenServer.start_link(__MODULE__, state,
-        name: {:via, Registry, {Mediasync.RoomRegistry, state.room_id}}
-      ),
-      state.room_id
-    )
+    case GenServer.start_link(__MODULE__, state,
+           name: {:via, Registry, {Mediasync.RoomRegistry, state.room_id}}
+         ) do
+      {:ok, pid} -> {:ok, pid, state.room_id}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @spec get_video_info(GenServer.server()) :: Mediasync.Room.VideoInfo.t()
@@ -93,22 +93,45 @@ defmodule Mediasync.Room do
   end
 
   @inactive_check_wait_milliseconds 10 * 1000
+  @discord_activity_instance_rooms_max 20
 
   @impl true
   @spec init(Mediasync.Room.State.t()) :: {:ok, Mediasync.Room.State.t()}
   def init(state = %Mediasync.Room.State{}) do
-    if state.discord_instance_id do
-      Registry.register(Mediasync.DiscordActivityInstanceRegistry, state.discord_instance_id, %{
-        host_username: state.host_username,
-        room_id: state.room_id
-      })
+    discord_activity_ok? =
+      if state.discord_instance_id do
+        instance_room_count =
+          Registry.count_match(
+            Mediasync.DiscordActivityInstanceRegistry,
+            state.discord_instance_id,
+            :_
+          )
+
+        if instance_room_count < @discord_activity_instance_rooms_max do
+          Registry.register(
+            Mediasync.DiscordActivityInstanceRegistry,
+            state.discord_instance_id,
+            %{
+              host_username: state.host_username,
+              room_id: state.room_id
+            }
+          )
+
+          true
+        else
+          false
+        end
+      end
+
+    if discord_activity_ok? != false do
+      Process.send_after(self(), :check_if_active, @inactive_check_wait_milliseconds)
+
+      Logger.info("Created room #{state.room_id}")
+
+      {:ok, state}
+    else
+      {:stop, :discord_activity_instance_max_rooms_reached}
     end
-
-    Process.send_after(self(), :check_if_active, @inactive_check_wait_milliseconds)
-
-    Logger.info("Created room #{state.room_id}")
-
-    {:ok, state}
   end
 
   @impl true

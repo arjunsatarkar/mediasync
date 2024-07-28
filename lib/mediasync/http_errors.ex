@@ -99,7 +99,7 @@ defmodule Mediasync.HTTPErrors do
 
     conn
     |> put_json_content_type()
-    |> send_resp(400, Jason.encode!(error))
+    |> send_resp(400, Jason.encode!(error, pretty: true))
   end
 
   @bad_gateway Jason.encode!(%{"error" => "badGateway"}, pretty: true)
