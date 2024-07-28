@@ -75,11 +75,15 @@
     </div>
     <iframe src="<%= home_url %>" style="display: none;" class="at-home" name="activity-inner-iframe"></iframe>
     <script>
+        const QUERY_PARAM_DISCORD_ACTIVITY_INNER = "<%= Mediasync.Constants.query_param_discord_activity_inner() %>";
         const DISCORD_CLIENT_ID = "<%= Application.fetch_env!(:mediasync, :discord_client_id) %>";
-        const ACCESS_TOKEN_URL = "/.proxy/discord_activity/access_token?<%= Mediasync.Constants.query_param_discord_activity_inner() %>";
+        const ACCESS_TOKEN_URL = `/.proxy/discord_activity/access_token?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}`;
         const HOME_URL = "<%= home_url %>";
+        const roomsForInstanceUrl = (instanceId) => {
+            return `/.proxy/discord_activity/rooms_for_instance?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}&instance_id=${instanceId}`;
+        };
         const roomUrl = (roomId) => {
-            return `/.proxy/room/${roomId}?<%= Mediasync.Constants.query_param_discord_activity_inner() %>`;
+            return `/.proxy/room/${roomId}?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}`;
         };
     </script>
     <script src="/static/discord-embedded-app-sdk/Discord.js" type="module"></script>

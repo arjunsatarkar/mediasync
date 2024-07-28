@@ -11,9 +11,7 @@ const updateInstanceRoomInfo = () => {
     contentEl.replaceChildren(defaultContents);
   }
 
-  fetch(
-    `/.proxy/discord_activity/rooms_for_instance?discord_activity_inner&instance_id=${discordSdk.instanceId}`,
-  )
+  fetch(roomsForInstanceUrl(discordSdk.instanceId))
     .then((response) => {
       if (!response.ok) {
         throw new Error(`Fetching instance room info failed with status code ${response.status}`);
@@ -35,7 +33,7 @@ const updateInstanceRoomInfo = () => {
           form.style.display = "inline";
           const hiddenInput = form.appendChild(document.createElement("input"));
           hiddenInput.type = "hidden";
-          hiddenInput.name = "discord_activity_inner";
+          hiddenInput.name = QUERY_PARAM_DISCORD_ACTIVITY_INNER;
           const submitInput = form.appendChild(document.createElement("input"));
           submitInput.type = "submit";
           submitInput.value = "join";
