@@ -1,4 +1,18 @@
 <!DOCTYPE html>
+<%
+import Mediasync.Constants
+
+{video_info, websocket_path, state_url, home_button_url} = if in_discord_activity? do
+  {
+    %{video_info | url: "/.proxy/room/#{room_id}/video?#{query_param_discord_activity_inner()}"},
+    "/.proxy/room/#{room_id}/websocket?#{query_param_discord_activity_inner()}",
+    "/.proxy/room/#{room_id}/state.json?#{query_param_discord_activity_inner()}",
+    "/.proxy/?#{query_param_discord_activity_inner()}"
+  }
+else
+  {video_info, "/room/#{room_id}/websocket", "/room/#{room_id}/state.json", nil}
+end
+%>
 <html lang="en">
 
 <head>
@@ -18,7 +32,7 @@
             src: url("/static/fontawesome-free-6.6.0-web/webfonts/fa-solid-900.woff2") format("woff2");
         }
 
-        .icon-home, .icon-users {
+        .icon-home, .icon-users, .icon-left, .icon-right, .icon-left-right {
             font-family: "FontAwesomeSolid";
         }
 
@@ -27,7 +41,19 @@
         }
 
         .icon-users::before {
-            content: "\f0c0"
+            content: "\f0c0";
+        }
+
+        .icon-left::before {
+            content: "\f30a";
+        }
+
+        .icon-right::before {
+            content: "\f30b";
+        }
+
+        .icon-left-right::before {
+            content: "\f337";
         }
 
         #state-button-active::after {
@@ -53,7 +79,7 @@
     <script src="/static/video.js/video.min.js"></script>
     <script>
         const WEBSOCKET_URL = location.origin.replace(/^http/, "ws") + "<%= websocket_path %>";
-        const HOME_URL = <%= if home_url, do: ~s("#{home_url}"), else: "null" %>;
+        const HOME_BUTTON_URL = <%= if home_button_url, do: ~s("#{home_button_url}"), else: "null" %>;
         const STATE_ELEMENT_INITIAL_TEXT = "loading...";
         const STATE_URL = "<%= state_url %>";
     </script>

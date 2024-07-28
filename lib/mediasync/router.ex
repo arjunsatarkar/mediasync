@@ -42,7 +42,7 @@ defmodule Mediasync.Router do
 
       enable_discord_activity? and
           Map.has_key?(conn.query_params, query_param_discord_activity_inner()) ->
-        send_resp(conn, 200, Mediasync.Templates.home(:discord_activity))
+        send_resp(conn, 200, Mediasync.Templates.home(true))
 
       true ->
         send_resp(conn, 200, Mediasync.Templates.home())
@@ -112,24 +112,19 @@ defmodule Mediasync.Router do
 
     case Registry.lookup(Mediasync.RoomRegistry, room_id) do
       [{pid, _value}] ->
-        video_info = Mediasync.Room.get_video_info(pid)
-
-        {video_info, websocket_path, state_url, home_url} =
-          if Application.fetch_env!(:mediasync, :enable_discord_activity?) and
-               Map.has_key?(conn.query_params, query_param_discord_activity_inner()) do
-            {%{video_info | url: "/.proxy/room/#{room_id}/video"},
-             "/.proxy/room/#{room_id}/websocket?#{query_param_discord_activity_inner()}",
-             "/.proxy/room/#{room_id}/state.json?#{query_param_discord_activity_inner()}",
-             "/.proxy/?#{query_param_discord_activity_inner()}"}
-          else
-            {video_info, "/room/#{room_id}/websocket", "/room/#{room_id}/state.json", nil}
-          end
+        in_discord_activity? =
+          Application.fetch_env!(:mediasync, :enable_discord_activity?) and
+            Map.has_key?(conn.query_params, query_param_discord_activity_inner())
 
         conn
         |> put_html_content_type()
         |> send_resp(
           200,
-          Mediasync.Templates.room(video_info, websocket_path, state_url, home_url)
+          Mediasync.Templates.room(
+            Mediasync.Room.get_video_info(pid),
+            room_id,
+            in_discord_activity?
+          )
         )
 
       [] ->

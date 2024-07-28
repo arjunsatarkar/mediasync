@@ -1,5 +1,8 @@
-<% home_url="/.proxy/?#{Mediasync.Constants.query_param_discord_activity_inner()}" %>
 <!DOCTYPE html>
+<%
+import Mediasync.Constants
+home_url="/.proxy/?#{query_param_discord_activity_inner()}"
+%>
 <html lang="en">
 
 <head>
@@ -72,15 +75,14 @@
         <span style="font-weight: bold;">currently hosting:</span>
         <div id="instance-room-info-content"></div>
     </div>
-    </div>
     <iframe src="<%= home_url %>" style="display: none;" class="at-home" name="activity-inner-iframe"></iframe>
     <script>
-        const QUERY_PARAM_DISCORD_ACTIVITY_INNER = "<%= Mediasync.Constants.query_param_discord_activity_inner() %>";
+        const QUERY_PARAM_DISCORD_ACTIVITY_INNER = "<%= query_param_discord_activity_inner() %>";
         const DISCORD_CLIENT_ID = "<%= Application.fetch_env!(:mediasync, :discord_client_id) %>";
         const ACCESS_TOKEN_URL = `/.proxy/discord_activity/access_token?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}`;
         const HOME_URL = "<%= home_url %>";
         const roomsForInstanceUrl = (instanceId) => {
-            return `/.proxy/discord_activity/rooms_for_instance?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}&instance_id=${instanceId}`;
+            return `/.proxy/discord_activity/rooms_for_instance?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}&<%= query_param_instance_id() %>=${instanceId}`;
         };
         const roomUrl = (roomId) => {
             return `/.proxy/room/${roomId}?${QUERY_PARAM_DISCORD_ACTIVITY_INNER}`;

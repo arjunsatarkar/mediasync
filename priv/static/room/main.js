@@ -40,10 +40,10 @@
     {
       let customIconPosition = 1;
       const Button = videojs.getComponent("Button");
-      if (HOME_URL !== null) {
+      if (HOME_BUTTON_URL !== null) {
         const homeButton = new Button(player, {
           clickHandler: (_) => {
-            location = HOME_URL;
+            location = HOME_BUTTON_URL;
           },
         });
         homeButton.addClass("icon-home");

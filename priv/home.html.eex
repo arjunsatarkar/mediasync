@@ -1,11 +1,11 @@
+<!DOCTYPE html>
 <%
-{form_action_base, form_action_suffix} = case mode do
-  :discord_activity -> {"/.proxy/", "?#{Mediasync.Constants.query_param_discord_activity_inner()}"}
-  :normal -> {"/", ""}
-  _ -> raise ArgumentError
+import Mediasync.Constants
+{form_action_base, form_action_suffix} = case in_discord_activity? do
+  true -> {"/.proxy/", "?#{query_param_discord_activity_inner()}"}
+  false -> {"/", ""}
 end
 %>
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
