@@ -26,6 +26,21 @@
     }
   };
 
+  const setPlayerDimensions = (player) => {
+    document.querySelector("style#extra-styles").textContent = `
+      div#playerContainer {
+        height: 100svh;
+        width: calc(100svh * ${player.videoWidth() / player.videoHeight()});
+      }
+      @media (orientation: portrait) {
+        div#playerContainer {
+          width: 100svw;
+          height: calc(100svw * ${player.videoHeight() / player.videoWidth()});
+        }
+      }
+    `;
+  };
+
   const player = videojs("player", {
     controls: true,
     experimentalSvgIcons: true,
@@ -36,6 +51,14 @@
 
   player.ready(() => {
     setControlsEnabled(player, false);
+
+    if (player.readyState() >= 1) {
+      setPlayerDimensions(player);
+    } else {
+      player.on("loadedmetadata", () => {
+        setPlayerDimensions(player);
+      });
+    }
 
     {
       let customIconPosition = 1;
@@ -52,16 +75,46 @@
       }
 
       const stateButton = new Button(player, {
-        clickHandler: (event) => {
+        clickHandler: (_) => {
           const stateButtonEl = stateButton.el();
-          const id = stateButtonEl.getAttribute("id");
-          stateButtonEl.setAttribute("id", id ? "" : "state-button-active");
+          stateButtonEl.id = stateButtonEl.id ? "" : "state-button-active";
         },
       });
       stateButton.el().setAttribute("data-text", STATE_ELEMENT_INITIAL_TEXT);
       stateButton.addClass("icon-users state-element");
       stateButton.controlText("Viewers");
       player.controlBar.addChild(stateButton, {}, customIconPosition++);
+
+      if (SHOW_SNAP_BUTTON) {
+        const SNAP_NEXT_L = "icon-left";
+        const SNAP_NEXT_R = "icon-right";
+        const SNAP_NEXT_LR = "icon-left-right";
+        const SNAP_TITLE_L = "Snap Video To Left";
+        const SNAP_TITLE_R = "Snap Video To Right";
+        const SNAP_TITLE_LR = "Snap Video To Center";
+        const snapButton = new Button(player, {
+          clickHandler: (_) => {
+            const snapButtonEl = snapButton.el();
+            if (snapButtonEl.classList.contains(SNAP_NEXT_L)) {
+              snapButtonEl.classList.remove(SNAP_NEXT_L);
+              snapButtonEl.classList.add(SNAP_NEXT_R);
+              snapButtonEl.title = SNAP_TITLE_R;
+            } else if (snapButtonEl.classList.contains(SNAP_NEXT_R)) {
+              snapButtonEl.classList.remove(SNAP_NEXT_R);
+              snapButtonEl.classList.add(SNAP_NEXT_LR);
+              snapButtonEl.title = SNAP_TITLE_LR;
+            } else {
+              snapButtonEl.classList.remove(SNAP_NEXT_LR);
+              snapButtonEl.classList.add(SNAP_NEXT_L);
+              snapButtonEl.title = SNAP_TITLE_L;
+            }
+          },
+        });
+        snapButton.el().id = "snap-button";
+        snapButton.addClass(SNAP_NEXT_L);
+        snapButton.controlText(SNAP_TITLE_L);
+        player.controlBar.addChild(snapButton, {}, customIconPosition++);
+      }
     }
 
     const updatePlaybackState = (latestReceivedState, nowMilliseconds) => {
