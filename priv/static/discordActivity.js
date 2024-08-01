@@ -26,7 +26,9 @@ const updateInstanceRoomInfo = () => {
         const listEl = docFragment.appendChild(document.createElement("ul"));
         for (const roomInfo of json) {
           const item = listEl.appendChild(document.createElement("li"));
-          item.textContent = roomInfo["host_username"] + " ";
+          item.textContent = roomInfo["host_username"] + " — ";
+          const filename = item.appendChild(document.createElement("code"));
+          filename.textContent = roomInfo["filename"] + " ";
           const form = item.appendChild(document.createElement("form"));
           form.action = roomUrl(roomInfo["room_id"]);
           form.target = "activity-inner-iframe";

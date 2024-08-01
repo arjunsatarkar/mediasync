@@ -231,13 +231,13 @@ defmodule Mediasync.Router do
   get "/discord_activity/rooms_for_instance" do
     if Application.fetch_env!(:mediasync, :enable_discord_activity?) do
       values =
-        for {_pid, value} <-
+        for {pid, value} <-
               Registry.match(
                 Mediasync.DiscordActivityInstanceRegistry,
                 conn.query_params["instance_id"],
                 :_
               ) do
-          value
+          Map.put(value, "filename", Path.basename(URI.new!(Mediasync.Room.get_video_info(pid).url).path))
         end
 
       conn
