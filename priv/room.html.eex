@@ -11,7 +11,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>room | mediasync</title>
     <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/video.js/video-js.min.css">
+    <link rel="stylesheet" href="/static/vendored/video.js/video-js.min.css">
     <style>
         body {
             margin: 0;
@@ -68,7 +68,7 @@
             </video-js>
         </div>
     </div>
-    <script src="/static/video.js/video.min.js"></script>
+    <script src="/static/vendored/video.js/video.min.js"></script>
     <script>
         const WEBSOCKET_URL = location.origin.replace(/^http/, "ws") + "<%= websocket_path %>";
         const STATE_ELEMENT_INITIAL_TEXT = "loading...";

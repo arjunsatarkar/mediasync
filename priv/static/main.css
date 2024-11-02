@@ -20,7 +20,8 @@ input {
 
 @font-face {
   font-family: "FontAwesomeSolid";
-  src: url("/static/fontawesome-free-6.6.0-web/webfonts/fa-solid-900.woff2") format("woff2");
+  src: url("/static/vendored/fontawesome-free-6.6.0-web/webfonts/fa-solid-900.woff2")
+    format("woff2");
 }
 
 .icon-users {

@@ -1,2 +1,3 @@
-/priv/static/video.js/
+/priv/static/vendored/
 **/*.md
+/.elixir_ls/

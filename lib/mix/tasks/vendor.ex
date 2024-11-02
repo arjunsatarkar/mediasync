@@ -5,8 +5,8 @@ defmodule Mix.Tasks.Vendor do
   def run([]) do
     {_, 0} = System.cmd("npm", ~w(install --include=dev))
 
-    File.cp_r!("node_modules/video.js/dist", "priv/static/video.js")
-    File.cp_r!("node_modules/video.js/LICENSE", "priv/static/video.js/LICENSE")
+    File.cp_r!("node_modules/video.js/dist", "priv/static/vendored/video.js")
+    File.cp_r!("node_modules/video.js/LICENSE", "priv/static/vendored/video.js/LICENSE")
 
     nil
   end
