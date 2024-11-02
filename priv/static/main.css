@@ -23,30 +23,10 @@ input {
   src: url("/static/fontawesome-free-6.6.0-web/webfonts/fa-solid-900.woff2") format("woff2");
 }
 
-.icon-home,
-.icon-users,
-.icon-left,
-.icon-right,
-.icon-left-right {
+.icon-users {
   font-family: "FontAwesomeSolid";
-}
-
-.icon-home::before {
-  content: "\f015";
 }
 
 .icon-users::before {
   content: "\f0c0";
-}
-
-.icon-left::before {
-  content: "\f30a";
-}
-
-.icon-right::before {
-  content: "\f30b";
-}
-
-.icon-left-right::before {
-  content: "\f337";
 }

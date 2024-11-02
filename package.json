@@ -1,17 +1,6 @@
 {
   "devDependencies": {
-    "@discord/embedded-app-sdk": "^1.4.0",
-    "parcel": "^2.12.0",
     "prettier": "3.3.2",
     "video.js": "^8.12.0"
-  },
-  "targets": {
-    "discord-embedded-app-sdk": {
-      "distDir": "priv/static/discord-embedded-app-sdk/",
-      "isLibrary": true,
-      "outputFormat": "esmodule",
-      "source": "node_modules/@discord/embedded-app-sdk/output/Discord.mjs",
-      "sourceMap": false
-    }
   }
 }

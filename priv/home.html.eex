@@ -1,11 +1,4 @@
 <!DOCTYPE html>
-<%
-import Mediasync.Constants
-{form_action_base, form_action_suffix} = case in_discord_activity? do
-  true -> {"/.proxy/", "?#{query_param_discord_activity_inner()}"}
-  false -> {"/", ""}
-end
-%>
 <html lang="en">
 
 <head>
@@ -16,7 +9,7 @@ end
 </head>
 
 <body>
-    <form action="<%= form_action_base %>host_room<%= form_action_suffix %>" method="post">
+    <form action="/host_room" method="post">
         <input name="_csrf_token" type="hidden" value="<%= Plug.CSRFProtection.get_csrf_token() %>">
         <label for="host_room_input_video_url">video url:</label>
         <input name="video_url" id="host_room_input_video_url" type="url"

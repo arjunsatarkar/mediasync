@@ -18,9 +18,7 @@ defmodule Mediasync.Room.State do
     :video_info,
     :host_user_token_hash,
     :room_id,
-    :host_username,
     :viewer_usernames,
-    :discord_instance_id,
     host_disconnected_tries: @host_disconnected_tries_max
   ]
 
@@ -32,9 +30,7 @@ defmodule Mediasync.Room.State do
           video_info: Mediasync.Room.VideoInfo.t(),
           host_user_token_hash: Mediasync.UserToken.hash(),
           room_id: Mediasync.RoomID.t() | nil,
-          host_username: String.t() | nil,
           viewer_usernames: [String.t()] | nil,
-          discord_instance_id: String.t() | nil,
           host_disconnected_tries: integer()
         }
 end
@@ -93,45 +89,15 @@ defmodule Mediasync.Room do
   end
 
   @inactive_check_wait_milliseconds 10 * 1000
-  @discord_activity_instance_rooms_max 20
 
   @impl true
   @spec init(Mediasync.Room.State.t()) :: {:ok, Mediasync.Room.State.t()}
   def init(state = %Mediasync.Room.State{}) do
-    discord_activity_ok? =
-      if state.discord_instance_id do
-        instance_room_count =
-          Registry.count_match(
-            Mediasync.DiscordActivityInstanceRegistry,
-            state.discord_instance_id,
-            :_
-          )
+    Process.send_after(self(), :check_if_active, @inactive_check_wait_milliseconds)
 
-        if instance_room_count < @discord_activity_instance_rooms_max do
-          Registry.register(
-            Mediasync.DiscordActivityInstanceRegistry,
-            state.discord_instance_id,
-            %{
-              host_username: state.host_username,
-              room_id: state.room_id
-            }
-          )
+    Logger.info("Created room #{state.room_id}")
 
-          true
-        else
-          false
-        end
-      end
-
-    if discord_activity_ok? != false do
-      Process.send_after(self(), :check_if_active, @inactive_check_wait_milliseconds)
-
-      Logger.info("Created room #{state.room_id}")
-
-      {:ok, state}
-    else
-      {:stop, :discord_activity_instance_max_rooms_reached}
-    end
+    {:ok, state}
   end
 
   @impl true

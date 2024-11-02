@@ -25,13 +25,6 @@ defmodule Mediasync.Application do
       {Registry, keys: :duplicate, name: Mediasync.RoomSubscriptionRegistry}
     ]
 
-    children =
-      if Application.fetch_env!(:mediasync, :enable_discord_activity?) do
-        [{Registry, keys: :duplicate, name: Mediasync.DiscordActivityInstanceRegistry} | children]
-      else
-        children
-      end
-
     System.no_halt(true)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
