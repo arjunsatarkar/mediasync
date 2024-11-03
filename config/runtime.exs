@@ -20,4 +20,6 @@ config :mediasync,
   websocket_max_frame_octets: 10_000,
   secret_key_base: System.fetch_env!("MEDIASYNC_SECRET_KEY_BASE"),
   session_encryption_salt: System.fetch_env!("MEDIASYNC_SESSION_ENCRYPTION_SALT"),
-  session_signing_salt: System.fetch_env!("MEDIASYNC_SESSION_SIGNING_SALT")
+  session_signing_salt: System.fetch_env!("MEDIASYNC_SESSION_SIGNING_SALT"),
+  source_url: "https://github.com/arjunsatarkar/mediasync/",
+  source_link_text: "[source code]"

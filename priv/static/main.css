@@ -18,6 +18,14 @@ input {
   font-family: inherit;
 }
 
+a:link {
+  color: lightskyblue;
+}
+
+a:visited {
+  color: mediumpurple;
+}
+
 @font-face {
   font-family: "FontAwesomeSolid";
   src: url("/static/vendored/fontawesome-free-6.6.0-web/webfonts/fa-solid-900.woff2")
@@ -30,4 +38,8 @@ input {
 
 .icon-users::before {
   content: "\f0c0";
+}
+
+#source-footer {
+  text-align: right;
 }

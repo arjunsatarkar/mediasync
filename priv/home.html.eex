@@ -35,6 +35,9 @@
 
         <input type="submit" value="host room">
     </form>
+    <div id="source-footer">
+        <a href="<%= Application.get_env(:mediasync, :source_url) %>"><%= Application.get_env(:mediasync, :source_link_text) %></a>
+    </div>
 </body>
 
 </html>
