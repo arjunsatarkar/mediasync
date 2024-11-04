@@ -4,7 +4,7 @@ defmodule Mediasync.MixProject do
   def project do
     [
       app: :mediasync,
-      version: "1.0.0",
+      version: "1.1.0",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps()
